@@ -29,6 +29,10 @@ public abstract class Personnage {
     this.pv = pv;
   }
 
+  public int calculerDegats(int degats) {
+    return degats - this.defense;
+  }
+
   public int getDefense() {
     return defense;
   }
@@ -50,10 +54,14 @@ public abstract class Personnage {
   }
 
   public void prendreDegats(int degats) {
-    this.pv -= degats - this.defense;
+    if (degats > this.defense) {
+      this.pv -= degats - this.defense;
+    } else {
+      this.pv -= 1;
+    }
   }
 
   public boolean estVivant() {
-    return this.pv != 0;
+    return this.pv > 0;
   }
 }
