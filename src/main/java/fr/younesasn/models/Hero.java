@@ -1,20 +1,15 @@
 package fr.younesasn.models;
 
-import fr.younesasn.interfaces.PouvoirSpecial;
-
-public class Hero extends Personnage implements PouvoirSpecial {
+public abstract class Hero extends Personnage {
+  private String nomClasse;
   protected int mana;
+  protected int potion;
 
-  public Hero(String nom, int pv, int attaque, int defense, int mana) {
+  protected Hero(String nomClasse, String nom, int pv, int attaque, int defense, int mana, int potion) {
     super(nom, pv, attaque, defense);
+    this.nomClasse = nomClasse;
     this.mana = mana;
-  }
-
-  public void utiliserPouvoir(Personnage cible) {
-    if (this.mana != 0) {
-      cible.prendreDegats(this.mana);
-      this.mana = 0;
-    }
+    this.potion = potion;
   }
 
   public int getMana() {
@@ -25,9 +20,21 @@ public class Hero extends Personnage implements PouvoirSpecial {
     this.mana = mana;
   }
 
+  public void utiliserPotion() {
+    if (this.potion < 0) {
+      return;
+    }
+    this.pv += this.pv % 2;
+    this.potion -= 1;
+  }
+
   @Override
   public String toString() {
-    return "\nPV: " + this.pv + "\nAttaque: " + this.attaque + "\nDéfense: " + this.defense
-        + "\nMana: " + this.mana;
+    return "{ Classe: " + this.nomClasse + ", PV: " + this.pv + ", Attaque: " + this.attaque + ", Défense: " + this.defense
+        + ", Mana: " + this.mana + " }";
+  }
+
+  public String getEtat() {
+    return "{ PV=" + this.pv + " Mana=" + this.mana + " }";
   }
 }

@@ -1,12 +1,12 @@
 package fr.younesasn.models;
 
-public class Ennemi extends Personnage {
-  public Ennemi(String nom, int attaque, int defense) {
-    super(nom, 100, attaque, defense);
+public abstract class Ennemi extends Personnage {
+  protected Ennemi(String nom, int pv, int attaque, int defense) {
+    super(nom, pv, attaque, defense);
   }
 
   @Override
   public String toString() {
-    return "\nNom: " + this.nom + "\nPV: " + this.pv + "\nAttaque: " + this.attaque + "\nDéfense: " + this.defense;
+    return "{ PV: " + this.pv + " Attaque: " + this.attaque + " Défense: " + this.defense + " }";
   }
 }
