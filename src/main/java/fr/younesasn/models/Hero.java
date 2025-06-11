@@ -1,6 +1,8 @@
 package fr.younesasn.models;
 
-public abstract class Hero extends Personnage {
+import fr.younesasn.interfaces.PouvoirSpecial;
+
+public abstract class Hero extends Personnage implements PouvoirSpecial {
   private String nomClasse;
   protected int mana;
   protected int potion;
@@ -20,21 +22,50 @@ public abstract class Hero extends Personnage {
     this.mana = mana;
   }
 
+  public int getPotion() {
+    return potion;
+  }
+
+  public void setPotion(int potion) {
+    this.potion = potion;
+  }
+
   public void utiliserPotion() {
-    if (this.potion < 0) {
+    if (this.potion <= 0) {
       return;
     }
-    this.pv += this.pv % 2;
+    this.pv += 110 - this.pv;
     this.potion -= 1;
+
+    // Régénération du mana selon la classe
+    switch (this.nomClasse) {
+      case "Guerrier":
+        this.mana = Math.min(10, this.mana + 10);
+        break;
+      case "Samouraï":
+        this.mana = Math.min(10, this.mana + 10);
+        break;
+      case "Mage":
+        this.mana = Math.min(40, this.mana + 20);
+        break;
+      case "Vagabond":
+        // Le Vagabond n'a pas de mana, donc pas de régénération
+        break;
+      default:
+        break;
+    }
   }
+
+  public void utiliserPouvoir(Personnage cible) {}
 
   @Override
   public String toString() {
-    return "{ Classe: " + this.nomClasse + ", PV: " + this.pv + ", Attaque: " + this.attaque + ", Défense: " + this.defense
-        + ", Mana: " + this.mana + " }";
+    return "{ Classe: " + this.nomClasse + ", PV: 110, Attaque: " + this.attaque + ", Défense: "
+        + this.defense
+        + ", Mana: " + this.mana + ", Potion: " + this.potion + " }";
   }
 
   public String getEtat() {
-    return "{ PV=" + this.pv + " Mana=" + this.mana + " }";
+    return "{ PV: " + this.pv + ", Mana: " + this.mana + ", Potion: " + this.potion + " }";
   }
 }

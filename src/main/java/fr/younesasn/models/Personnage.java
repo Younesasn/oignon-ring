@@ -49,15 +49,18 @@ public abstract class Personnage {
     this.attaque = attaque;
   }
 
-  public void attaquer(Personnage cible) {
-    cible.prendreDegats(this.attaque);
+  public int attaquer(Personnage cible) {
+    return cible.prendreDegats(this.attaque);
   }
 
-  public void prendreDegats(int degats) {
+  public int prendreDegats(int degats) {
     if (degats > this.defense) {
-      this.pv -= degats - this.defense;
+      int degatsInfligees = degats - this.defense;
+      this.pv -= degatsInfligees;
+      return degatsInfligees;
     } else {
       this.pv -= 1;
+      return 1;
     }
   }
 

@@ -1,6 +1,11 @@
 package fr.younesasn.services;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Scanner;
@@ -26,108 +31,195 @@ public class CombatManager {
 
     System.out.println("\nSalut " + nom + " ! Choisissez la classe de votre héro : ");
 
-    choix(nom);
+    choixClasse(nom);
     combat();
   }
 
-  public static void choix(String nom) {
-    try {
-      System.out.println("\n1: " + new Samourai(nom));
-      System.out.println("\n2: " + new Guerrier(nom));
-      System.out.println("\n3: " + new Sorcier(nom));
-      System.out.println("\n4: " + new Vagabond(nom));
-      System.out.print("\nClasse de votre héros : ");
-      int choix = sc.nextInt();
+  public static void choixClasse(String nom) {
+    boolean choixValide = false;
 
-      switch (choix) {
-        case 1:
-          System.out.println("\nClasse choisi : Samouraï 🥷🏾");
-          hero = new Samourai(nom);
-          break;
-        case 2:
-          System.out.println("\nClasse choisi : Guerrier 🤺");
-          hero = new Guerrier(nom);
-          break;
-        case 3:
-          System.out.println("\nClasse choisi : Sorcier 🧙‍♂️");
-          hero = new Sorcier(nom);
-          break;
-        case 4:
-          System.out.println("\nClasse choisi : Vagabond 🧍‍♂️");
-          hero = new Vagabond(nom);
-          break;
-        default:
-          System.out.println("\nVeuillez réessayez...");
-          choix(nom);
-          break;
+    while (!choixValide) {
+      try {
+        System.out.println("\n1: " + new Samourai(nom));
+        System.out.println("\n2: " + new Guerrier(nom));
+        System.out.println("\n3: " + new Mage(nom));
+        System.out.println("\n4: " + new Vagabond(nom));
+        System.out.print("\nClasse de votre héros : ");
+        int choix = sc.nextInt();
+
+        switch (choix) {
+          case 1:
+            System.out.println("\nClasse choisi : Samouraï 🥷🏾");
+            hero = new Samourai(nom);
+            choixValide = true;
+            break;
+          case 2:
+            System.out.println("\nClasse choisi : Guerrier 🤺");
+            hero = new Guerrier(nom);
+            choixValide = true;
+            break;
+          case 3:
+            System.out.println("\nClasse choisi : Mage 🧙‍♂️");
+            hero = new Mage(nom);
+            choixValide = true;
+            break;
+          case 4:
+            System.out.println("\nClasse choisi : Vagabond 🧍‍♂️");
+            hero = new Vagabond(nom);
+            choixValide = true;
+            break;
+          default:
+            System.out.println("\nErreur : Veuillez saisir un chiffre entre 1 et 4.");
+            break;
+        }
+      } catch (InputMismatchException e) {
+        System.out.println("Erreur : Veuillez saisir un chiffre entre 1 et 4.");
+        sc.next();
       }
-    } catch (InputMismatchException e) {
-      System.out.println("Erreur : Veuillez saisir un chiffre entre 1 et 4.");
-      // choix(nom);
     }
   }
 
   public static void combat() {
-    genererEnnemi();
-    for (Ennemi ennemi : genererEnnemi()) {
-      System.out.println("\n" + ennemi.getNom() + " vous attaque ! ⚔️");
+    int compteurGobelins = 0;
+
+    while (hero.estVivant()) {
+      Ennemi ennemi = genererEnnemi(compteurGobelins);
+      System.out.println("\n" + ennemi.getNom() + " N°" + (compteur + 1) + " vous attaque ! ⚔️");
+      if (!combattreEnnemi(ennemi)) {
+        return; // Le héros est mort
+      }
       compteur++;
-      while (ennemi.estVivant()) {
-        System.out.println("\n👤 Votre état actuel : " + hero);
-        System.out.println("👾 Votre ennemi : " + ennemi);
-        System.out.println("\n🎮 À vous de jouez ! Vous pouvez : \n1: Attaquez \n2: Utiliser pouvoir spécial");
-        System.out.print("Votre choix : ");
-        int choix = sc.nextInt();
-        switch (choix) {
-          case 1:
-            hero.attaquer(ennemi);
-            // System.out.println(
-            // "\n ⚔️ Vous avez attaqué ! Vous avez infligé à votre ennemi : " +
-            // hero.calculerDegats() + " PV");
-            break;
-          case 2:
-            // hero.utiliserPouvoir();
-            // System.out.println("Vous avez attaqué fort !! Dégâts infligés : " +
-            // hero.calculerDegats(ennemi.getAttaque()) + " PV");
-          default:
-            break;
-        }
-        ennemi.attaquer(hero);
-        if (!hero.estVivant()) {
-          System.out.println("Vous êtes mort...💀 Fin du jeu.");
-          System.out.println("\nVous avez exterminé " + compteur + " ennemis !");
-          return;
-        }
+      hero.setPotion(hero.getPotion() + 1);
+
+      if (ennemi instanceof Gobelin) {
+        compteurGobelins++;
+      } else {
+        compteurGobelins = 0; // Reset le compteur après un boss
       }
     }
+
+    System.out.println("\nVous avez exterminé " + compteur + " ennemis !");
+    enregistrerScore();
   }
 
-  public static List<Ennemi> genererEnnemi() {
-    List<Ennemi> ennemis = new ArrayList<>();
-    List<Ennemi> bosses = new ArrayList<>();
-    for (int i = 0; i < 5; i++) {
-      Gobelin gobelin = new Gobelin();
-      ennemis.add(gobelin);
+  private static boolean combattreEnnemi(Ennemi ennemi) {
+    while (hero.estVivant() && ennemi.estVivant()) {
+      afficherEtatCombat(ennemi);
+      int choix = obtenirChoixJoueur();
+
+      if (!executerActionJoueur(choix, ennemi)) {
+        return false; // Le héros est mort
+      }
+    }
+    return true; // L'ennemi est vaincu
+  }
+
+  private static void afficherEtatCombat(Ennemi ennemi) {
+    System.out.println("\n👤 Votre état actuel : " + hero.getEtat());
+    System.out.println("👾 Votre ennemi : " + ennemi);
+    System.out.println("\n🎮 À vous de jouez ! Vous pouvez : \n1: Attaquez ⚔️");
+    if (hero.getMana() > 0) {
+      System.out.println("2: Utiliser pouvoir spécial ☄️");
+    }
+    if (hero.getPotion() > 0) {
+      System.out.println("3: Utiliser potion 🧪");
+    }
+    System.out.println("4: Quittez le jeu 🚪");
+  }
+
+  private static int obtenirChoixJoueur() {
+    int choix = 0;
+    boolean choixValide = false;
+
+    while (!choixValide) {
+      try {
+        System.out.print("\nVotre choix : ");
+        choix = sc.nextInt();
+
+        if (choix == 1 ||
+            (choix == 2 && hero.getMana() > 0) ||
+            (choix == 3 && hero.getPotion() > 0) ||
+            choix == 4) {
+          choixValide = true;
+        } else {
+          System.out
+              .println("\n❌ Erreur : Veuillez saisir un choix valide (1, 2, ou 3 selon les options disponibles).");
+        }
+      } catch (InputMismatchException e) {
+        System.out.println("\n❌ Erreur : Veuillez saisir un nombre valide.");
+        sc.next();
+      }
     }
 
-    Margit margit = new Margit();
-    bosses.add(margit);
+    return choix;
+  }
 
-    Godrick godrick = new Godrick();
-    bosses.add(godrick);
-
-    Rennala rennala = new Rennala();
-    bosses.add(rennala);
-
-    Radhan radhan = new Radhan();
-    bosses.add(radhan);
-
-    RadhanPrime radhanPrime = new RadhanPrime();
-    bosses.add(radhanPrime);
-
-    for (int i = 0; i < Utils.getRandomNumber(1, 5); i++) {
-      ennemis.add(bosses.get(Utils.getRandomNumber(0, 5)));
+  private static boolean executerActionJoueur(int choix, Ennemi ennemi) {
+    switch (choix) {
+      case 1:
+        int degats = hero.attaquer(ennemi);
+        System.out.println("\n⚔️ Vous avez attaqué ! Vous avez infligé à votre ennemi : " + degats + " PV");
+        break;
+      case 2:
+        hero.utiliserPouvoir(ennemi);
+        break;
+      case 3:
+        hero.utiliserPotion();
+        System.out
+            .println("\nVous avez utilisé une potion ! 🧪 PV et Mana régénérés ! Potion restant : " + hero.getPotion());
+        break;
+      case 4:
+        hero.setPv(0);
+        break;
+      default:
+        break;
     }
-    return ennemis;
+
+    return executerAttaqueEnnemi(ennemi);
+  }
+
+  private static boolean executerAttaqueEnnemi(Ennemi ennemi) {
+    if (!hero.estVivant()) {
+      System.out.println("\nVous êtes mort...💀 Fin du jeu.");
+      System.out.println("\nVous avez exterminé " + compteur + " ennemis !");
+      enregistrerScore();
+      return false;
+    }
+    int degats = ennemi.attaquer(hero);
+    System.out.println("\nVotre ennemi vous a attaqué, Il vous a infligé : " + degats + " PV");
+    return true;
+  }
+
+  public static Ennemi genererEnnemi(int compteurGobelins) {
+    // Ajouter un boss tous les 3 gobelins
+    if (compteurGobelins >= 3) {
+      List<Ennemi> bosses = new ArrayList<>();
+      bosses.add(new Margit());
+      bosses.add(new Godrick());
+      bosses.add(new Rennala());
+      bosses.add(new Radhan());
+      bosses.add(new RadhanPrime());
+
+      return bosses.get(Utils.getRandomNumber(0, bosses.size() - 1));
+    }
+
+    // Sinon, générer un gobelin
+    return new Gobelin();
+  }
+
+  public static void enregistrerScore() {
+    List<String> contenu = List.of(
+        "Date : " + new Date().toString(),
+        "Partie joué par : " + hero.getNom(),
+        "Personnage : " + hero,
+        "Ennemis vaincus : " + compteur,
+        "=====");
+    try {
+      Files.write(Paths.get("src/main/resources/score.txt"), contenu, StandardOpenOption.CREATE,
+          StandardOpenOption.APPEND);
+          System.out.println("\nDonnées sauvegardées dans score.txt 📊");
+    } catch (IOException e) {
+      System.out.println("Erreur : " + e);
+    }
   }
 }

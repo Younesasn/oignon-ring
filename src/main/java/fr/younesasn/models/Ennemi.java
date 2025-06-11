@@ -7,6 +7,6 @@ public abstract class Ennemi extends Personnage {
 
   @Override
   public String toString() {
-    return "{ PV: " + this.pv + " Attaque: " + this.attaque + " Défense: " + this.defense + " }";
+    return "{ Ennemi: " + this.nom + ", PV: " + this.pv + ", Attaque: " + this.attaque + ", Défense: " + this.defense + " }";
   }
 }
